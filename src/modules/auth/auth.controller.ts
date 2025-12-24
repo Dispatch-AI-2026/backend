@@ -16,9 +16,9 @@ import { EUserRole } from '@/common/constants/user.constant';
 import { SkipCSRF } from '@/common/decorators/skip-csrf.decorator';
 import { AuthService } from '@/modules/auth/auth.service';
 import { LoginDto } from '@/modules/auth/dto/login.dto';
+import { ResetPasswordDto } from '@/modules/auth/dto/reset-password.dto';
 import { CreateUserDto } from '@/modules/auth/dto/signup.dto';
 import { UserResponseDto } from '@/modules/auth/dto/user-response.dto';
-import { ResetPasswordDto } from '@/modules/auth/dto/reset-password.dto';
 import { UserStatus } from '@/modules/user/enum/userStatus.enum';
 import { generateCSRFToken } from '@/utils/csrf.util';
 
@@ -173,20 +173,34 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req: Request, @Res() res: Response): void {
+    // Check if user is authenticated
+    if (!req.user) {
+      const frontendUrl = process.env.APP_URL ?? 'http://localhost:3000';
+      res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      return;
+    }
+
     const { user, token, csrfToken } = req.user as {
       user: Record<string, unknown>;
       token: string;
       csrfToken: string;
     };
 
+    // Validate required fields
+    if (!token || !csrfToken) {
+      const frontendUrl = process.env.APP_URL ?? 'http://localhost:3000';
+      res.redirect(`${frontendUrl}/login?error=oauth_incomplete`);
+      return;
+    }
+
     // Manually construct safe user object to preserve ObjectId
     const safeUser = {
-      _id: user._id?.toString() ?? user._id,
-      email: user.email ?? '',
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role as EUserRole,
-      status: user.status as UserStatus,
+      _id: user._id?.toString() ?? (user._id as string | undefined) ?? '',
+      email: (user.email as string | undefined) ?? '',
+      firstName: (user.firstName as string | undefined) ?? '',
+      lastName: (user.lastName as string | undefined) ?? '',
+      role: (user.role as EUserRole | undefined) ?? EUserRole.user,
+      status: (user.status as UserStatus | undefined) ?? UserStatus.active,
     };
 
     // Set JWT token as httpOnly cookie
@@ -216,14 +230,21 @@ export class AuthController {
 
   @ApiOperation({
     summary: 'Forgot Password',
-    description: 'Send a password reset link to the user\'s email',
+    description: "Send a password reset link to the user's email",
   })
-  @ApiResponse({ status: 200, description: 'If that email is registered, a reset link has been sent.' })
+  @ApiResponse({
+    status: 200,
+    description: 'If that email is registered, a reset link has been sent.',
+  })
   @Post('forgot-password')
   @SkipCSRF()
-  async forgotPassword(@Body('email') email: string): Promise<{ message: string }> {
+  async forgotPassword(
+    @Body('email') email: string,
+  ): Promise<{ message: string }> {
     await this.authService.forgotPassword(email);
-    return { message: 'If that email is registered, a reset link has been sent.' };
+    return {
+      message: 'If that email is registered, a reset link has been sent.',
+    };
   }
 
   @ApiOperation({
@@ -334,7 +355,9 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid token or password' })
   @Post('reset-password')
   @SkipCSRF()
-  async resetPassword(@Body() dto: ResetPasswordDto): Promise<{ message: string }> {
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
     await this.authService.resetPassword(dto);
     return { message: 'Password reset successful' };
   }
