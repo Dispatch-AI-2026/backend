@@ -35,7 +35,7 @@ import { OnboardingModule } from './onboarding/onboarding.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath : ['.env.local', '.env'],
+      envFilePath: ['.env.local', '.env'],
     }),
     DatabaseModule,
     HealthModule,
