@@ -37,13 +37,12 @@ jobs:
         run: |
           docker build \
             --build-arg BASE_IMAGE_TAG=${{ inputs.image_tag }} \
-            -t ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ inputs.image_tag }} .
-            -t ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:latest .
 
       - name: Push image
         run: |
           docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ inputs.image_tag }}
           docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:latest
+
 
       - name: Deploy
         run: |
