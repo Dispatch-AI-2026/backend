@@ -1,4 +1,6 @@
 # Stage 1 - Build
+ARG BASE_IMAGE_TAG=latest
+
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -16,7 +18,9 @@ RUN pnpm install --offline \
 
 
 # Stage 2 - Runtime
-FROM gcr.io/distroless/nodejs20 AS runtime
+
+
+FROM 409171460637.dkr.ecr.ap-southeast-2.amazonaws.com/base-image:${BASE_IMAGE_TAG} AS runtime
 
 WORKDIR /app
 
@@ -29,6 +33,8 @@ ENV NODE_ENV=production \
 PORT=4000
 EXPOSE 4000
 
-USER nonroot
+RUN groupadd -g 1001 appgroup && useradd -u 1001 -g appgroup -m appuser
 
-CMD [ "dist/src/main.js"]
+USER appuser
+
+CMD [ "Node","dist/src/main.js"]
