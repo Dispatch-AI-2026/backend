@@ -17,7 +17,6 @@ on:
   push:
     branches:
       - "**"
-
 permissions:
   contents: read
   id-token: write
@@ -51,7 +50,6 @@ jobs:
             --build-arg BASE_IMAGE_TAG=${{ env.IMAGE_TAG }} \
             -t ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ env.IMAGE_TAG }} \
             -t ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:latest \
-            .
 
       - name: Push image
         run: |
