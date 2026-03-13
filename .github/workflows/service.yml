@@ -1,0 +1,49 @@
+name: Service Pipeline
+
+on:
+  push:
+    branches: [main]
+
+  repository_dispatch:
+    types: [base_image_updated]
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ap-southeast-2
+  IMAGE_TAG: ${{ github.event.client_payload.image_tag }}
+
+jobs:
+
+  build_and_deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build image
+        run: |
+          docker build \
+            --build-arg BASE_IMAGE_TAG=${IMAGE_TAG} \
+            -t ${{ secrets.ECR_REGISTRY }}/service:${IMAGE_TAG} .
+
+      - name: Push image
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY }}/service:${IMAGE_TAG}
+
+      - name: Deploy
+        run: |
+          echo "Trigger deployment (ArgoCD / ECS / Helm)"
