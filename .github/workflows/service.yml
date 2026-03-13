@@ -1,11 +1,11 @@
 name: Service Pipeline
 
 on:
-  push:
-    branches: [main]
-
-  repository_dispatch:
-    types: [base_image_updated]
+  workflow_call:
+    inputs:
+      image_tag:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -13,7 +13,6 @@ permissions:
 
 env:
   AWS_REGION: ap-southeast-2
-  IMAGE_TAG: ${{ github.event.client_payload.image_tag }}
 
 jobs:
 
@@ -37,12 +36,12 @@ jobs:
       - name: Build image
         run: |
           docker build \
-            --build-arg BASE_IMAGE_TAG=${IMAGE_TAG} \
-            -t ${{ secrets.ECR_REGISTRY }}/service:${IMAGE_TAG} .
+            --build-arg BASE_IMAGE_TAG=${{ inputs.image_tag }} \
+            -t ${{ secrets.ECR_REGISTRY }}/service:${{ inputs.image_tag }} .
 
       - name: Push image
         run: |
-          docker push ${{ secrets.ECR_REGISTRY }}/service:${IMAGE_TAG}
+          docker push ${{ secrets.ECR_REGISTRY }}/service:${{ inputs.image_tag }}
 
       - name: Deploy
         run: |
