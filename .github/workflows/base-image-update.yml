@@ -60,7 +60,7 @@ jobs:
           load: true
           tags: |
             ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.sha }}
-            ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:main-${{ github.run_number }}
+            ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.ref_name }}-${{ github.run_number }}
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -70,7 +70,7 @@ jobs:
       - name: Push image to ECR
         run: |
           docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.sha }}
-          docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:main-${{ github.run_number }}
+          docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.ref_name }}-${{ github.run_number }}
 
 
       - name: Deploy
