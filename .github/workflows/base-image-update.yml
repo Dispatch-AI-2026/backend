@@ -59,18 +59,18 @@ jobs:
           load: true
           tags: |
             ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.sha }}
-            ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.ref_name }}-${{ github.run_number }}
+            ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{  github.ref_name || 'branch' }}-${{ github.run_number }}
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             BASE_IMAGE_TAG=${{ env.BASE_IMAGE_TAG }}
 
-            - name: Run Trivy vulnerability scanner on Docker image
-            uses: aquasecurity/trivy-action@master
-            with:
+      - name: Run Trivy vulnerability scanner on Docker image
+        uses: aquasecurity/trivy-action@master
+        with:
               scan-type: image
-              image-ref: ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.sha }}
+              image-ref: '${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.sha }}'
               format: sarif
               output: trivy-image-results.sarif
               severity: HIGH,CRITICAL
@@ -87,7 +87,7 @@ jobs:
         if: success()
         run: |
           docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.sha }}
-          docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ github.ref_name }}-${{ github.run_number }}
+          docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{  github.ref_name || 'branch' }}-${{ github.run_number }}
 
 
       - name: Deploy
