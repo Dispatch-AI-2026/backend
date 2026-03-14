@@ -1,4 +1,7 @@
 # Stage 1 - Build
+
+ARG BASE_IMAGE_TAG = sha-8ac6c280f0265f5f0f533fe3b3130bc1086e3b2a
+
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -16,7 +19,8 @@ RUN pnpm install --offline \
 
 
 # Stage 2 - Runtime
-FROM gcr.io/distroless/nodejs20 AS runtime
+FROM 409171460637.dkr.ecr.ap-southeast-2.amazonaws.com/base-image:${BASE_IMAGE_TAG} AS runtime
+
 
 WORKDIR /app
 
