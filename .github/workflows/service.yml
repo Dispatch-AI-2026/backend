@@ -1,0 +1,61 @@
+name: Service Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        required: false
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Optional image tag for manual testing"
+        required: false
+        type: string
+
+  push:
+    branches: [main]
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ap-southeast-2
+  IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
+
+jobs:
+
+  build_and_deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build image
+        run: |
+          docker build \
+            -t ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ env.IMAGE_TAG }} \
+            -t ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:latest \
+            .
+
+      - name: Push image
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:${{ env.IMAGE_TAG }}
+          docker push ${{ secrets.ECR_REGISTRY }}/dispatchai2026-backend:latest
+
+
+      - name: Deploy
+        run: |
+          echo "Trigger deployment (ArgoCD / ECS / Helm)"
