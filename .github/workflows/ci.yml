@@ -4,17 +4,15 @@ on:
   push:
     branches:
       - main
-      - feature/ci-pipeline
     paths-ignore:
       - '**/*.md'
       - '**/*.txt'
-  # pull_request:
-  #   branches:
-  #     - main
-  #     - feature/ci-pipeline
-  #   paths-ignore:
-  #     - '**/*.md'
-  #     - '**/*.txt'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.txt'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
