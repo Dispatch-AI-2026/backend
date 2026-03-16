@@ -1,4 +1,5 @@
 # Stage 1 - Build
+ARG base_image_version=latest
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -16,7 +17,7 @@ RUN pnpm install --offline \
 
 
 # Stage 2 - Runtime
-FROM gcr.io/distroless/nodejs20 AS runtime
+FROM 437089831625.dkr.ecr.ap-southeast-2.amazonaws.com/base-image:${base_image_version} AS runtime
 
 WORKDIR /app
 
