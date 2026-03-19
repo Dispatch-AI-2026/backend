@@ -453,6 +453,21 @@ pnpm type-check
 ### Docker Development
 
 ```bash
+#Before building the image 
+run 
+export AWS_ACCESS_KEY_ID=""
+export AWS_SECRET_ACCESS_KEY=""
+export AWS_SESSION_TOKEN=""
+
+And configure the corresponding name
+
+Then login to docker to get the ECR token
+
+aws ecr get-login-password --region ap-southeast-2 \
+| docker login --username AWS --password-stdin 437089831625.dkr.ecr.ap-southeast-2.amazonaws.com
+
+Then build the image
+
 # Build image
 docker build -f Dockerfile.dev -t dispatchai-backend:dev .
 
